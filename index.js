@@ -1,23 +1,19 @@
 const AWS = require("aws-sdk");
 const fs = require("fs");
 const path = require("path");
+const dotenv = require("dotenv");
+dotenv.config();
 
-const { exec } = require("child_process");
-// Initialize AWS SDK
 const s3 = new AWS.S3({
-  region: "", // Replace with your AWS region
+  region: process.env.AWS_REGION,
   credentials: {
-    accessKeyId: "", // Replace with your AWS access key ID
-    secretAccessKey: "", // Replace with your AWS secret access key
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS__ACCESS_KEY,
   },
 });
 
-// Configuration
-const bucketName = ""; // Replace with your S3 bucket name
-const localDownloadPath = "./downloads"; // Local directory where files will be downloaded
-
-const localOutputPath = "./output";
-
+const bucketName = process.env.AWS_DOWNLOAD_S3_BUCKET_NAME;
+const localDownloadPath = "./downloads";
 async function checkIfKeyExists(bucket, key) {
   try {
     await s3.headObject({ Bucket: bucket, Key: key }).promise();
@@ -50,7 +46,6 @@ async function downloadFile(objectKey) {
     fs.mkdirSync(localDir, { recursive: true });
   }
 
-  // Download the object from S3 to local filesystem
   const downloadParams = {
     Bucket: bucketName,
     Key: objectKey,
@@ -78,43 +73,8 @@ async function downloadFile(objectKey) {
     console.log("File downloaded successfully.");
   } catch (err) {
     console.error("Error:", err);
-
-    // Cleanup: Remove partially downloaded file
-    if (fs.existsSync(localFilePath)) {
-      fs.unlinkSync(localFilePath);
-      console.log(`Removed partially downloaded file: ${localFilePath}`);
-    }
   }
 }
 
-function convertToHLS(inputFilePath) {
-  return new Promise((resolve, reject) => {
-    const outputPath = path.join(localOutputPath, "output.m3u8");
-    const ffmpegCommand = `ffmpeg -i "${inputFilePath}" -codec:v libx264 -codec:a aac -hls_time 10 -hls_playlist_type vod -hls_segment_filename "${localOutputPath}/segment%03d.ts" -start_number 0 "${outputPath}"`;
-
-    exec(ffmpegCommand, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error executing ffmpeg: ${error}`);
-        reject(error);
-      } else {
-        console.log(`ffmpeg stdout: ${stdout}`);
-        console.error(`ffmpeg stderr: ${stderr}`);
-        console.log("File converted to HLS successfully.");
-        resolve(outputPath);
-      }
-    });
-  });
-}
-
-async function processVideo(objectKey) {
-  try {
-    await downloadFile(objectKey);
-    const localFilePath = path.join(localDownloadPath, `${objectKey}`);
-    await convertToHLS(localFilePath);
-  } catch (err) {
-    console.error("Error processing video:", err);
-  }
-}
-
-const objectKey = "";
-processVideo(objectKey);
+const objectKey = process.env.S3_OBJECT_KEY;
+downloadFile(objectKey);
