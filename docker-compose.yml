@@ -7,5 +7,3 @@ services:
       dockerfile: Dockerfile
     env_file:
       - .env
-    volumes:
-      - .:/home/app
