@@ -1,3 +1,6 @@
+#!/bin/bash
+
+
 
 outputPath="./output/${TRANSCODED_S3_OBJECT_KEY}"
 downloadsPath="downloads"
