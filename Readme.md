@@ -11,3 +11,5 @@
 - it convert thhe downloaded media file to m3u8 with 1080p 720p 420p 320p and removes the downloaded file from local
 - finally it upload that m3u8 vdo file to my production bucket
 - remove the media from that temporary bucket 
+- And update the lecture status
+-  if it fails then (no deadletter queue) it just pushes another job to notification queue that lecture upload failed
